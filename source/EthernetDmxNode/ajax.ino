@@ -177,13 +177,11 @@ bool ajaxSave(uint8_t page, JsonObject& json) {
         uint8_t oldMode = deviceSettings.portAmode;
         bool updatePorts = false;
 
-        #ifndef ONE_PORT
-          // RDM and DMX input can't run together
-          if (newMode == TYPE_DMX_IN && deviceSettings.portBmode == TYPE_RDM_OUT) {
-            deviceSettings.portBmode = TYPE_DMX_OUT;
-            dmxB.rdmDisable();
-          }
-        #endif
+        // RDM and DMX input can't run together
+        if (newMode == TYPE_DMX_IN && deviceSettings.portBmode == TYPE_RDM_OUT) {
+          deviceSettings.portBmode = TYPE_DMX_OUT;
+          dmxB.rdmDisable();
+        }
         
         if (newMode == TYPE_DMX_IN && json.containsKey("dmxInBroadcast"))
           deviceSettings.dmxInBroadcast = IPAddress(json["dmxInBroadcast"][0],json["dmxInBroadcast"][1],json["dmxInBroadcast"][2],json["dmxInBroadcast"][3]);
@@ -325,165 +323,163 @@ bool ajaxSave(uint8_t page, JsonObject& json) {
       break;
 
     case 5:     // Port B
-      #ifndef ONE_PORT
-      {
-        deviceSettings.portBprot = (uint8_t)json["portBprot"];
-        bool e131 = (deviceSettings.portBprot == PROT_ARTNET_SACN) ? true : false;
-        
-        deviceSettings.portBmerge = (uint8_t)json["portBmerge"];
-  
-        if ((uint8_t)json["portBnet"] < 128)
-          deviceSettings.portBnet = (uint8_t)json["portBnet"];
-  
-        if ((uint8_t)json["portBsub"] < 16)
-        deviceSettings.portBsub = (uint8_t)json["portBsub"];
-  
-        for (uint8_t x = 0; x < 4; x++) {
-          if ((uint8_t)json["portBuni"][x] < 16)
-            deviceSettings.portBuni[x] = (uint8_t)json["portBuni"][x];
-          
-          if ((uint16_t)json["portBsACNuni"][x] > 0 && (uint16_t)json["portBsACNuni"][x] < 64000)
-            deviceSettings.portBsACNuni[x] = (uint16_t)json["portBsACNuni"][x];
+    {
+      deviceSettings.portBprot = (uint8_t)json["portBprot"];
+      bool e131 = (deviceSettings.portBprot == PROT_ARTNET_SACN) ? true : false;
+      
+      deviceSettings.portBmerge = (uint8_t)json["portBmerge"];
 
-          artRDM.setE131(portB[0], portB[x+1], e131);
-          artRDM.setE131Uni(portB[0], portB[x+1], deviceSettings.portBsACNuni[x]);
-        }
-  
-        uint8_t newMode = json["portBmode"];
-        uint8_t oldMode = deviceSettings.portBmode;
-        bool updatePorts = false;
-        
-        // RDM and DMX input can't run together
-        if (newMode == TYPE_RDM_OUT && deviceSettings.portAmode == TYPE_DMX_IN)
-          newMode = TYPE_DMX_OUT;
-        
-        if (newMode != oldMode) {
-          
-          // Store the nem mode to settings
-          deviceSettings.portBmode = newMode;
+      if ((uint8_t)json["portBnet"] < 128)
+        deviceSettings.portBnet = (uint8_t)json["portBnet"];
 
+      if ((uint8_t)json["portBsub"] < 16)
+      deviceSettings.portBsub = (uint8_t)json["portBsub"];
+
+      for (uint8_t x = 0; x < 4; x++) {
+        if ((uint8_t)json["portBuni"][x] < 16)
+          deviceSettings.portBuni[x] = (uint8_t)json["portBuni"][x];
+        
+        if ((uint16_t)json["portBsACNuni"][x] > 0 && (uint16_t)json["portBsACNuni"][x] < 64000)
+          deviceSettings.portBsACNuni[x] = (uint16_t)json["portBsACNuni"][x];
+
+        artRDM.setE131(portB[0], portB[x+1], e131);
+        artRDM.setE131Uni(portB[0], portB[x+1], deviceSettings.portBsACNuni[x]);
+      }
+
+      uint8_t newMode = json["portBmode"];
+      uint8_t oldMode = deviceSettings.portBmode;
+      bool updatePorts = false;
+      
+      // RDM and DMX input can't run together
+      if (newMode == TYPE_RDM_OUT && deviceSettings.portAmode == TYPE_DMX_IN)
+        newMode = TYPE_DMX_OUT;
+      
+      if (newMode != oldMode) {
+        
+        // Store the nem mode to settings
+        deviceSettings.portBmode = newMode;
+
+        doReboot = true;
+
+        /*
+        if (oldMode == TYPE_WS2812) {
+          doReboot = true;
+          
+          // Set pixel strip length to zero
+          pixDriver.updateStrip(1, 0, deviceSettings.portBpixConfig);
+
+          // Close ports from pixels - library handles if they dont exist
+          for (uint8_t x = 2; x <= 4; x++)
+            artRDM.closePort(portB[0], portB[x]);
+
+          // Start our DMX port
+          dmxB.begin(DMX_DIR_B, artRDM.getDMX(portB[0], portB[1]));
+          
+          
+        } else if (oldMode == TYPE_RDM_OUT)
+          dmxB.rdmDisable();
+        
+        
+
+        // Start DMX output with no DMX
+        if (newMode == TYPE_DMX_OUT) {
+          artRDM.setPortType(portB[0], portB[1], DMX_OUT);
+
+        // Start DMX output with RDM
+        } else if (newMode == TYPE_RDM_OUT) {
+          dmxB.rdmEnable(ESTA_MAN, ESTA_DEV);
+          dmxB.rdmSetCallBack(rdmReceivedB);
+          dmxB.todSetCallBack(sendTodB);
+          artRDM.setPortType(portB[0], portB[1], RDM_OUT);
+
+        // Start WS2812 output
+        } else if (newMode == TYPE_WS2812) {
           doReboot = true;
 
-          /*
-          if (oldMode == TYPE_WS2812) {
-            doReboot = true;
-            
-            // Set pixel strip length to zero
-            pixDriver.updateStrip(1, 0, deviceSettings.portBpixConfig);
-  
-            // Close ports from pixels - library handles if they dont exist
-            for (uint8_t x = 2; x <= 4; x++)
-              artRDM.closePort(portB[0], portB[x]);
-
-            // Start our DMX port
-            dmxB.begin(DMX_DIR_B, artRDM.getDMX(portB[0], portB[1]));
-            
-            
-          } else if (oldMode == TYPE_RDM_OUT)
-            dmxB.rdmDisable();
           
+          //dmxB.end();
+          artRDM.setPortType(portB[0], portB[1], TYPE_DMX_OUT);
+          updatePorts = true;
           
-
-          // Start DMX output with no DMX
-          if (newMode == TYPE_DMX_OUT) {
-            artRDM.setPortType(portB[0], portB[1], DMX_OUT);
-
-          // Start DMX output with RDM
-          } else if (newMode == TYPE_RDM_OUT) {
-            dmxB.rdmEnable(ESTA_MAN, ESTA_DEV);
-            dmxB.rdmSetCallBack(rdmReceivedB);
-            dmxB.todSetCallBack(sendTodB);
-            artRDM.setPortType(portB[0], portB[1], RDM_OUT);
-
-          // Start WS2812 output
-          } else if (newMode == TYPE_WS2812) {
-            doReboot = true;
-
-            
-            //dmxB.end();
-            artRDM.setPortType(portB[0], portB[1], TYPE_DMX_OUT);
-            updatePorts = true;
-            
-            // Initialize the pixel strip
-            pixDriver.setStrip(1, DMX_TX_B, deviceSettings.portBnumPix, deviceSettings.portBpixConfig);
-            
-          }
-          */
+          // Initialize the pixel strip
+          pixDriver.setStrip(1, DMX_TX_B, deviceSettings.portBnumPix, deviceSettings.portBpixConfig);
+          
         }
-        
-        // Update the Artnet class
-        artRDM.setNet(portB[0], deviceSettings.portBnet);
-        artRDM.setSubNet(portB[0], deviceSettings.portBsub);
-        artRDM.setUni(portB[0], portB[1], deviceSettings.portBuni[0]);
-        artRDM.setMerge(portB[0], portB[1], deviceSettings.portBmerge);
-
-        // Lengthen or shorten our pixel strip & handle required Artnet ports
-        if (newMode == TYPE_WS2812 && !doReboot) {
-          // Get the new & old lengths of pixel strip
-          uint16_t newLen = (json.containsKey("portBnumPix")) ? (uint16_t)json["portBnumPix"] : deviceSettings.portBnumPix;
-          if (newLen > 680)
-            newLen = 680;
-          
-          uint16_t oldLen = deviceSettings.portBnumPix;
-          bool lenChanged = false;
-  
-          // If pixel size has changed
-          if (newLen <= 680 && oldLen != newLen) {
-            // Update our pixel strip
-            deviceSettings.portBnumPix = newLen;
-            pixDriver.updateStrip(1, deviceSettings.portBnumPix, deviceSettings.portBpixConfig);
-  
-            lenChanged = true;
-
-            // If the old mode was pixel map then update the Artnet ports
-            if (deviceSettings.portBpixMode == FX_MODE_PIXEL_MAP)
-              updatePorts = true;
-          }
-            
-          // If the old mode was 12 channel FX, update oldLen to represent the number of channels we used
-          if (deviceSettings.portBpixMode == FX_MODE_12)
-            oldLen = 12;
-  
-          // If our mode changes then update the Artnet ports
-          if (deviceSettings.portBpixMode != (uint8_t)json["portBpixMode"])
-            updatePorts = true;
-  
-          // Store the new pixel mode
-          deviceSettings.portBpixMode = (uint8_t)json["portBpixMode"];
-  
-          // If our new mode is FX12 then we need 12 channels & store the start address
-          if (deviceSettings.portBpixMode == FX_MODE_12) {
-            if ((uint16_t)json["portBpixFXstart"] <= 501 && (uint16_t)json["portBpixFXstart"] > 0)
-              deviceSettings.portBpixFXstart = (uint16_t)json["portBpixFXstart"];
-            newLen = 12;
-          }
-
-          // If needed, open and close Artnet ports
-          if (updatePorts) {
-            for (uint8_t x = 1, y = 2; x < 4; x++, y++) {
-              uint16_t c = (x * 170);
-              if (newLen > c)
-                portB[y] = artRDM.addPort(portB[0], x, deviceSettings.portBuni[x], TYPE_DMX_OUT, deviceSettings.portBmerge);
-              else if (oldLen > c)
-                artRDM.closePort(portB[0], portB[y]);
-            }
-          }
-  
-          // Set universe and merge settings (port 1 is done above for all port types)
-          for (uint8_t x = 1, y = 2; x < 4; x++, y++) {
-            if (newLen > (x * 170)) {
-              artRDM.setUni(portB[0], portB[y], deviceSettings.portBuni[x]);
-              artRDM.setMerge(portB[0], portB[y], deviceSettings.portBmerge);
-            }
-          }
-        }
-  
-        artRDM.artPollReply();
-  
-        eepromSave();
-        return true;
+        */
       }
-      #endif
+      
+      // Update the Artnet class
+      artRDM.setNet(portB[0], deviceSettings.portBnet);
+      artRDM.setSubNet(portB[0], deviceSettings.portBsub);
+      artRDM.setUni(portB[0], portB[1], deviceSettings.portBuni[0]);
+      artRDM.setMerge(portB[0], portB[1], deviceSettings.portBmerge);
+
+      // Lengthen or shorten our pixel strip & handle required Artnet ports
+      if (newMode == TYPE_WS2812 && !doReboot) {
+        // Get the new & old lengths of pixel strip
+        uint16_t newLen = (json.containsKey("portBnumPix")) ? (uint16_t)json["portBnumPix"] : deviceSettings.portBnumPix;
+        if (newLen > 680)
+          newLen = 680;
+        
+        uint16_t oldLen = deviceSettings.portBnumPix;
+        bool lenChanged = false;
+
+        // If pixel size has changed
+        if (newLen <= 680 && oldLen != newLen) {
+          // Update our pixel strip
+          deviceSettings.portBnumPix = newLen;
+          pixDriver.updateStrip(1, deviceSettings.portBnumPix, deviceSettings.portBpixConfig);
+
+          lenChanged = true;
+
+          // If the old mode was pixel map then update the Artnet ports
+          if (deviceSettings.portBpixMode == FX_MODE_PIXEL_MAP)
+            updatePorts = true;
+        }
+          
+        // If the old mode was 12 channel FX, update oldLen to represent the number of channels we used
+        if (deviceSettings.portBpixMode == FX_MODE_12)
+          oldLen = 12;
+
+        // If our mode changes then update the Artnet ports
+        if (deviceSettings.portBpixMode != (uint8_t)json["portBpixMode"])
+          updatePorts = true;
+
+        // Store the new pixel mode
+        deviceSettings.portBpixMode = (uint8_t)json["portBpixMode"];
+
+        // If our new mode is FX12 then we need 12 channels & store the start address
+        if (deviceSettings.portBpixMode == FX_MODE_12) {
+          if ((uint16_t)json["portBpixFXstart"] <= 501 && (uint16_t)json["portBpixFXstart"] > 0)
+            deviceSettings.portBpixFXstart = (uint16_t)json["portBpixFXstart"];
+          newLen = 12;
+        }
+
+        // If needed, open and close Artnet ports
+        if (updatePorts) {
+          for (uint8_t x = 1, y = 2; x < 4; x++, y++) {
+            uint16_t c = (x * 170);
+            if (newLen > c)
+              portB[y] = artRDM.addPort(portB[0], x, deviceSettings.portBuni[x], TYPE_DMX_OUT, deviceSettings.portBmerge);
+            else if (oldLen > c)
+              artRDM.closePort(portB[0], portB[y]);
+          }
+        }
+
+        // Set universe and merge settings (port 1 is done above for all port types)
+        for (uint8_t x = 1, y = 2; x < 4; x++, y++) {
+          if (newLen > (x * 170)) {
+            artRDM.setUni(portB[0], portB[y], deviceSettings.portBuni[x]);
+            artRDM.setMerge(portB[0], portB[y], deviceSettings.portBmerge);
+          }
+        }
+      }
+
+      artRDM.artPollReply();
+
+      eepromSave();
+      return true;
+    }
       break;
 
     case 6:     // Scenes

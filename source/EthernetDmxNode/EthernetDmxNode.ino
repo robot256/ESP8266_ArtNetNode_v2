@@ -104,38 +104,69 @@ bool newDmxIn = false;
 bool doReboot = false;
 byte* dataIn;
 
-void setup(void) {
-  //pinMode(4, OUTPUT);
-  //digitalWrite(4, LOW);
+/// Logs a message without newline at the end. Only if Debug is enabled.
+void Log(String message)
+{
+  #ifdef DEBUG_ENABLE
+  Serial.print(message);
+  #endif
+}
 
-  // Make direction input to avoid boot garbage being sent out
-  pinMode(DMX_DIR_A, OUTPUT);
+/// Logs a message with newline at the end. Only if Debug is enabled.
+void LogLn(String message)
+{
+  #ifdef DEBUG_ENABLE
+  Serial.println(message);
+  #endif
+}
+
+/// SETUP
+void setup(void) 
+{
+  // Set direction to "input" to avoid boot garbage being sent out
+  #ifndef DEBUG_ENABLE  // if debug is enabled the port A is not used
+  pinMode(DMX_DIR_A, INPUT);
   digitalWrite(DMX_DIR_A, LOW);
-  #ifndef ONE_PORT
-    pinMode(DMX_DIR_B, OUTPUT);
-    digitalWrite(DMX_DIR_B, LOW);
   #endif
 
-  #ifndef ESP_01
-    pinMode(STATUS_LED_PIN, OUTPUT);
-    digitalWrite(STATUS_LED_PIN, LOW);
-    delay(1);
-    setStatusLed(STATUS_LED_S, PINK);
-    doStatusLedOutput();
-  #endif
+  pinMode(DMX_DIR_B, INPUT);
+  digitalWrite(DMX_DIR_B, LOW);
 
+  // Pin Modes of Status LEDs
+  pinMode(DMX_ACT_LED_A, OUTPUT);
+  pinMode(DMX_ACT_LED_B, OUTPUT);
+  pinMode(STATUS_LED_S_R, OUTPUT);
+  pinMode(STATUS_LED_S_G, OUTPUT);
+  setStatusLed(RED);
+  doStatusLedOutput();
+
+  // Start Serial
+  #ifdef DEBUG_ENABLE
+  Serial.begin(115200);
+  Serial.println(); // empty because of crap before serial starts
+  #endif
+  LogLn("Starting Setup");
+
+  // Set WiFi Sleep Modes
   wifi_set_sleep_type(NONE_SLEEP_T);
-  bool resetDefaults = false;
-  
-  #ifdef SETTINGS_RESET
-    pinMode(SETTINGS_RESET, INPUT);
 
+  // Variable for Settings reset
+  bool resetDefaults = false;
+
+  // If the Reset Settings is activated
+  #ifdef RESET_ENABLE
+    pinMode(SETTINGS_RESET, INPUT);
     delay(5);
+    
     // button pressed = low reading
-    if (!digitalRead(SETTINGS_RESET)) {
-      delay(50);
-      if (!digitalRead(SETTINGS_RESET))
+    if (digitalRead(SETTINGS_RESET) == false) 
+    {
+      delay(50);  // request again after a longer delay
+      if (digitalRead(SETTINGS_RESET) == false)
+      {
         resetDefaults = true;
+        LogLn("Settings Reset pressed: Settings will be reset.");
+      }
     }
   #endif
   
@@ -146,7 +177,8 @@ void setup(void) {
   SPIFFS.begin();
 
   // Check if SPIFFS formatted
-  if (SPIFFS.exists("/formatted.txt")) {
+  if (SPIFFS.exists("/formatted.txt")) 
+  {
     SPIFFS.format();
     
     File f = SPIFFS.open("/formatted.txt", "w");
@@ -156,10 +188,15 @@ void setup(void) {
 
   // Load our saved values or store defaults
   if (!resetDefaults)
+  {
     eepromLoad();
+    LogLn("Loaded Settings from EEPROM");
+  }
 
   // Store our counters for resetting defaults
-  if (resetInfo.reason != REASON_DEFAULT_RST && resetInfo.reason != REASON_EXT_SYS_RST && resetInfo.reason != REASON_SOFT_RESTART)
+  if (resetInfo.reason != REASON_DEFAULT_RST && 
+      resetInfo.reason != REASON_EXT_SYS_RST && 
+      resetInfo.reason != REASON_SOFT_RESTART)
     deviceSettings.wdtCounter++;
   else
     deviceSettings.resetCounter++;
@@ -173,10 +210,9 @@ void setup(void) {
   // Start web server
   webStart();
 
-  
   // Don't start our Artnet or DMX in firmware update mode or after multiple WDT resets
-  if (!deviceSettings.doFirmwareUpdate && deviceSettings.wdtCounter <= 3) {
-
+  if (!deviceSettings.doFirmwareUpdate && deviceSettings.wdtCounter <= 3) 
+  {
     // We only allow 1 DMX input - and RDM can't run alongside DMX in
     if (deviceSettings.portAmode == TYPE_DMX_IN && deviceSettings.portBmode == TYPE_RDM_OUT)
       deviceSettings.portBmode = TYPE_DMX_OUT;
@@ -191,15 +227,18 @@ void setup(void) {
     // Port Setup
     portSetup();
 
-  } else
+  } 
+  else  // if do firmware update
     deviceSettings.doFirmwareUpdate = false;
 
   delay(10);
 }
 
-void loop(void){
+void loop(void)
+{
   // If the device lasts for 6 seconds, clear our reset timers
-  if (deviceSettings.resetCounter != 0 && millis() > 6000) {
+  if (deviceSettings.resetCounter != 0 && millis() > 6000) 
+  {
     deviceSettings.resetCounter = 0;
     deviceSettings.wdtCounter = 0;
     eepromSave();
@@ -214,24 +253,25 @@ void loop(void){
   yield();
 
   // DMX handlers
+  #ifndef DEBUG_ENABLE  // if debug is enabled the port A is not used
   dmxA.handler();
-  #ifndef ONE_PORT
-    dmxB.handler();
   #endif
+  dmxB.handler();
+
 
   // Do Pixel FX on port A
+  #ifndef DEBUG_ENABLE  // if debug is enabled the port A is note used
   if (deviceSettings.portAmode == TYPE_WS2812 && deviceSettings.portApixMode != FX_MODE_PIXEL_MAP) {
     if (pixFXA.Update())
       pixDone = 0;
   }
+  #endif
 
   // Do Pixel FX on port B
-  #ifndef ONE_PORT
-    if (deviceSettings.portBmode == TYPE_WS2812 && deviceSettings.portBpixMode != FX_MODE_PIXEL_MAP) {
-      if (pixFXB.Update())
-        pixDone = 0;
-    }
-  #endif
+  if (deviceSettings.portBmode == TYPE_WS2812 && deviceSettings.portBpixMode != FX_MODE_PIXEL_MAP) {
+    if (pixFXB.Update())
+      pixDone = 0;
+  }
 
   // Do pixel string output
   if (!pixDone)
@@ -248,10 +288,6 @@ void loop(void){
     
     IPAddress bc = deviceSettings.dmxInBroadcast;
     artRDM.sendDMX(g, p, bc, dataIn, 512);
-
-    #ifndef ESP_01
-      setStatusLed(STATUS_LED_A, CYAN);
-    #endif
   }
 
   // Handle rebooting the system
@@ -268,31 +304,73 @@ void loop(void){
     ESP.restart();
   }
   
-  #ifdef STATUS_LED_PIN
-    // Output status to LEDs once per second
-    if (statusTimer < millis()) {
 
-      // Flash our main status LED
-      if ((statusTimer % 2000) > 1000)
-        setStatusLed(STATUS_LED_S, BLACK);
-      else if (nodeError[0] != '\0')
-        setStatusLed(STATUS_LED_S, RED);
-      else
-        setStatusLed(STATUS_LED_S, GREEN);
+  // Output status to LEDs once per second
+  if (statusTimer < millis()) {
 
-      doStatusLedOutput();
-      statusTimer = millis() + 1000;
-    }
-  #endif
+    // Flash our main status LED
+    if ((statusTimer % 2000) > 1000)
+      setStatusLed(BLACK);
+    else if (nodeError[0] != '\0')
+      setStatusLed(RED);
+    else
+      setStatusLed(GREEN);
+      
+
+    doStatusLedOutput();
+    statusTimer = millis() + 1000;
+  }
 }
 
-void dmxHandle(uint8_t group, uint8_t port, uint16_t numChans, bool syncEnabled) {
-  if (portA[0] == group) {
-    if (deviceSettings.portAmode == TYPE_WS2812) {
+void dmxHandle(uint8_t group, uint8_t port, uint16_t numChans, bool syncEnabled)
+{
+  if (portB[0] == group) {
+    if (deviceSettings.portBmode == TYPE_WS2812) {
+
+      setDmxLed(DMX_ACT_LED_B, true);   // flash Led => to High
       
-      #ifndef ESP_01
-        setStatusLed(STATUS_LED_A, GREEN);
-      #endif
+      if (deviceSettings.portBpixMode == FX_MODE_PIXEL_MAP) {
+        if (numChans > 510)
+          numChans = 510;
+        
+        // Copy DMX data to the pixels buffer
+        pixDriver.setBuffer(1, port * 510, artRDM.getDMX(group, port), numChans);
+        
+        // Output to pixel strip
+        if (!syncEnabled)
+          pixDone = false;
+
+        return;
+
+      // FX 12 mode
+      } else if (port == portB[1]) {
+        byte* a = artRDM.getDMX(group, port);
+        uint16_t s = deviceSettings.portBpixFXstart - 1;
+        
+        pixFXB.Intensity = a[s + 0];
+        pixFXB.setFX(a[s + 1]);
+        pixFXB.setSpeed(a[s + 2]);
+        pixFXB.Pos = a[s + 3];
+        pixFXB.Size = a[s + 4];
+        pixFXB.setColour1((a[s + 5] << 16) | (a[s + 6] << 8) | a[s + 7]);
+        pixFXB.setColour2((a[s + 8] << 16) | (a[s + 9] << 8) | a[s + 10]);
+        pixFXB.Size1 = a[s + 11];
+        //pixFXB.Fade = a[s + 12];
+
+        pixFXB.NewData = 1;
+      }
+    } else if (deviceSettings.portBmode != TYPE_DMX_IN && port == portB[1]) {
+      dmxB.chanUpdate(numChans);
+      setDmxLed(DMX_ACT_LED_B, false);   // flash Led => to High
+    }
+  }
+  
+  #ifndef DEBUG_ENABLE  // if debug is enabled the port A is not used
+  else if (portA[0] == group)
+  {
+    if (deviceSettings.portAmode == TYPE_WS2812) {
+
+      setDmxLed(DMX_ACT_LED_A, true);   // flash Led => to High
       
       if (deviceSettings.portApixMode == FX_MODE_PIXEL_MAP) {
         if (numChans > 510)
@@ -328,75 +406,33 @@ void dmxHandle(uint8_t group, uint8_t port, uint16_t numChans, bool syncEnabled)
       }
 
     // DMX modes
-    } else if (deviceSettings.portAmode != TYPE_DMX_IN && port == portA[1]) {
+    } 
+    else if (deviceSettings.portAmode != TYPE_DMX_IN && port == portA[1]) 
+    {
       dmxA.chanUpdate(numChans);
-      
-      #ifndef ESP_01
-        setStatusLed(STATUS_LED_A, BLUE);
-      #endif
     }
-      
 
-  #ifndef ONE_PORT
-  } else if (portB[0] == group) {
-    if (deviceSettings.portBmode == TYPE_WS2812) {
-      setStatusLed(STATUS_LED_B, GREEN);
-      
-      if (deviceSettings.portBpixMode == FX_MODE_PIXEL_MAP) {
-        if (numChans > 510)
-          numChans = 510;
-        
-        // Copy DMX data to the pixels buffer
-        pixDriver.setBuffer(1, port * 510, artRDM.getDMX(group, port), numChans);
-        
-        // Output to pixel strip
-        if (!syncEnabled)
-          pixDone = false;
-
-        return;
-
-      // FX 12 mode
-      } else if (port == portB[1]) {
-        byte* a = artRDM.getDMX(group, port);
-        uint16_t s = deviceSettings.portBpixFXstart - 1;
-        
-        pixFXB.Intensity = a[s + 0];
-        pixFXB.setFX(a[s + 1]);
-        pixFXB.setSpeed(a[s + 2]);
-        pixFXB.Pos = a[s + 3];
-        pixFXB.Size = a[s + 4];
-        pixFXB.setColour1((a[s + 5] << 16) | (a[s + 6] << 8) | a[s + 7]);
-        pixFXB.setColour2((a[s + 8] << 16) | (a[s + 9] << 8) | a[s + 10]);
-        pixFXB.Size1 = a[s + 11];
-        //pixFXB.Fade = a[s + 12];
-
-        pixFXB.NewData = 1;
-      }
-    } else if (deviceSettings.portBmode != TYPE_DMX_IN && port == portB[1]) {
-      dmxB.chanUpdate(numChans);
-      setStatusLed(STATUS_LED_B, BLUE);
-    }
-  #endif
+    setDmxLed(DMX_ACT_LED_A, false);   // flash Led => to Low
   }
-
+  #endif
 }
 
 void syncHandle() {
+  #ifndef DEBUG_ENABLE  // if debug is enabled the port A is not used
   if (deviceSettings.portAmode == TYPE_WS2812) {
     rdmPause(1);
     pixDone = pixDriver.show();
     rdmPause(0);
   } else if (deviceSettings.portAmode != TYPE_DMX_IN)
     dmxA.unPause();
-
-  #ifndef ONE_PORT
-    if (deviceSettings.portBmode == TYPE_WS2812) {
-      rdmPause(1);
-      pixDone = pixDriver.show();
-      rdmPause(0);
-    } else if (deviceSettings.portBmode != TYPE_DMX_IN)
-      dmxB.unPause();
   #endif
+
+  if (deviceSettings.portBmode == TYPE_WS2812) {
+    rdmPause(1);
+    pixDone = pixDriver.show();
+    rdmPause(0);
+  } else if (deviceSettings.portBmode != TYPE_DMX_IN)
+    dmxB.unPause();
 }
 
 void ipHandle() {
@@ -442,7 +478,8 @@ void ipHandle() {
 void addressHandle() {
   memcpy(&deviceSettings.nodeName, artRDM.getShortName(), ARTNET_SHORT_NAME_LENGTH);
   memcpy(&deviceSettings.longName, artRDM.getLongName(), ARTNET_LONG_NAME_LENGTH);
-  
+
+  #ifndef DEBUG_ENABLE  // if debug is enabled the port A is not used
   deviceSettings.portAnet = artRDM.getNet(portA[0]);
   deviceSettings.portAsub = artRDM.getSubNet(portA[0]);
   deviceSettings.portAuni[0] = artRDM.getUni(portA[0], portA[1]);
@@ -452,43 +489,44 @@ void addressHandle() {
     deviceSettings.portAprot = PROT_ARTNET_SACN;
   else
     deviceSettings.portAprot = PROT_ARTNET;
-
-
-  #ifndef ONE_PORT
-    deviceSettings.portBnet = artRDM.getNet(portB[0]);
-    deviceSettings.portBsub = artRDM.getSubNet(portB[0]);
-    deviceSettings.portBuni[0] = artRDM.getUni(portB[0], portB[1]);
-    deviceSettings.portBmerge = artRDM.getMerge(portB[0], portB[1]);
-    
-    if (artRDM.getE131(portB[0], portB[1]))
-      deviceSettings.portBprot = PROT_ARTNET_SACN;
-    else
-      deviceSettings.portBprot = PROT_ARTNET;
   #endif
+    
+  deviceSettings.portBnet = artRDM.getNet(portB[0]);
+  deviceSettings.portBsub = artRDM.getSubNet(portB[0]);
+  deviceSettings.portBuni[0] = artRDM.getUni(portB[0], portB[1]);
+  deviceSettings.portBmerge = artRDM.getMerge(portB[0], portB[1]);
+  
+  if (artRDM.getE131(portB[0], portB[1]))
+    deviceSettings.portBprot = PROT_ARTNET_SACN;
+  else
+    deviceSettings.portBprot = PROT_ARTNET;
   
   // Store everything to EEPROM
   eepromSave();
 }
 
-void rdmHandle(uint8_t group, uint8_t port, rdm_data* c) {
-  if (portA[0] == group && portA[1] == port)
-    dmxA.rdmSendCommand(c);
+void rdmHandle(uint8_t group, uint8_t port, rdm_data* c) 
+{
+  if (portB[0] == group && portB[1] == port)
+    dmxB.rdmSendCommand(c);
 
-  #ifndef ONE_PORT
-    else if (portB[0] == group && portB[1] == port)
-      dmxB.rdmSendCommand(c);
+  #ifndef DEBUG_ENABLE  // if debug is enabled the port A is not used
+  else if (portA[0] == group && portA[1] == port)
+    dmxA.rdmSendCommand(c);
   #endif
 }
 
-void rdmReceivedA(rdm_data* c) {
+#ifndef DEBUG_ENABLE  // if debug is enabled the port A is not used
+void rdmReceivedA(rdm_data* c)
+{
   artRDM.rdmResponse(c, portA[0], portA[1]);
 }
 
 void sendTodA() {
   artRDM.artTODData(portA[0], portA[1], dmxA.todMan(), dmxA.todDev(), dmxA.todCount(), dmxA.todStatus());
 }
+#endif
 
-#ifndef ONE_PORT
 void rdmReceivedB(rdm_data* c) {
   artRDM.rdmResponse(c, portB[0], portB[1]);
 }
@@ -496,25 +534,25 @@ void rdmReceivedB(rdm_data* c) {
 void sendTodB() {
   artRDM.artTODData(portB[0], portB[1], dmxB.todMan(), dmxB.todDev(), dmxB.todCount(), dmxB.todStatus());
 }
-#endif
 
-void todRequest(uint8_t group, uint8_t port) {
-  if (portA[0] == group && portA[1] == port)
+void todRequest(uint8_t group, uint8_t port) 
+{
+  if (portB[0] == group && portB[1] == port)
+    sendTodB();
+  #ifndef DEBUG_ENABLE  // if debug is enabled the port A is not used
+  else if (portA[0] == group && portA[1] == port)
     sendTodA();
-
-  #ifndef ONE_PORT
-    else if (portB[0] == group && portB[1] == port)
-      sendTodB();
   #endif
 }
 
-void todFlush(uint8_t group, uint8_t port) {
-  if (portA[0] == group && portA[1] == port)
+void todFlush(uint8_t group, uint8_t port) 
+{
+  if (portB[0] == group && portB[1] == port)
+    dmxB.rdmDiscovery();
+    
+  #ifndef DEBUG_ENABLE  // if debug is enabled the port A is not used
+  else if (portA[0] == group && portA[1] == port)
     dmxA.rdmDiscovery();
-
-  #ifndef ONE_PORT
-    else if (portB[0] == group && portB[1] == port)
-      dmxB.rdmDiscovery();
   #endif
 }
 
@@ -528,6 +566,8 @@ void dmxIn(uint16_t num) {
 }
 
 void doStatusLedOutput() {
+//STATUS LED!!!
+/*
   uint8_t a[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
   
   if (!statusLedsOff) {
@@ -551,9 +591,69 @@ void doStatusLedOutput() {
   // Tint LEDs red slightly - they'll be changed back before being displayed if no errors
   for (uint8_t x = 1; x < 9; x += 3)
     statusLedData[x] = 125;
+     */
 }
 
-void setStatusLed(uint8_t num, uint32_t col) {
-  memcpy(&statusLedData[num*3], &col, 3);
+
+/// Status LED Function used for Status LED ///
+void setStatusLed(uint32_t col) {
+  switch (col)
+  {
+    case RED:
+    {
+      setRGled(true, false);
+      break;
+    }
+    case GREEN:
+    {
+      setRGled(false, true);
+      break;
+    }
+    case ORANGE:
+    {
+      setRGled(true, true);
+      break;
+    }
+    case BLACK:
+    {
+      setRGled(false, false);
+      break;
+    }
+  }
+}
+
+/// Status LED RG set Function used for Status LED ///
+void setRGled(bool r, bool g)
+{
+  if(r)
+  {
+    analogWrite(STATUS_LED_S_R, STATUS_LED_BRIGHTNESS);
+  }
+  else
+  {
+    analogWrite(STATUS_LED_S_R, 0);
+  }
+  
+  if(g)
+  {
+    analogWrite(STATUS_LED_S_G, STATUS_LED_BRIGHTNESS);
+  }
+  else
+  {
+    analogWrite(STATUS_LED_S_G, 0);
+  }
+}
+
+/// Status LED Enable/Disable Function used for DMX LEDs ///
+void setDmxLed(uint8_t pin, bool on)
+{
+  if(on)
+  {
+    analogWrite(pin, DMX_ACT_LED_BRIGHTNESS);
+  }
+  else
+  {
+    analogWrite(pin, 0);
+  }
 }
 
