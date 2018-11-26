@@ -1,0 +1,3 @@
+[submodule "libs/DmxRdmLib"]
+	path = libs/DmxRdmLib
+	url = https://github.com/JonasArnold/DmxRdmLib_esp8266.git
