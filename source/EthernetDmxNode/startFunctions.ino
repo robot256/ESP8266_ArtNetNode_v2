@@ -79,40 +79,52 @@ void doNodeReport() {
 
 void portSetup() 
 {
+  // PORT A INITIALIZATION
   #ifndef DEBUG_ENABLE  // if debug is enabled the port A is not used
-  if (deviceSettings.portAmode == TYPE_DMX_OUT || deviceSettings.portAmode == TYPE_RDM_OUT) {
+  if (deviceSettings.portAmode == TYPE_DMX_OUT || deviceSettings.portAmode == TYPE_RDM_OUT)
+  {
+    LogLn("Port A configured as Output for universe "); Log((String)portA[0]); Log(" in subnet "); Log((String)portA[1]); LogLn(".");
+    delay(100); // wait until logged
     
     setDmxLed(DMX_ACT_LED_A, true);      // led bright when output
     
     dmxA.begin(DMX_DIR_A, artRDM.getDMX(portA[0], portA[1]));
-    if (deviceSettings.portAmode == TYPE_RDM_OUT && !dmxA.rdmEnabled()) {
+    if (deviceSettings.portAmode == TYPE_RDM_OUT && !dmxA.rdmEnabled()) 
+    {
       dmxA.rdmEnable(ESTA_MAN, ESTA_DEV);
-      dmxA.rdmSetCallBack(rdmReceivedA);
-      dmxA.todSetCallBack(sendTodA);
+      dmxA.rdmSetCallBack(rdmReceivedA); // RDM Callback handler :> rdmReceivedA
+      dmxA.todSetCallBack(sendTodA);     // ToD = Table of Devices
     }
 
-  } else if (deviceSettings.portAmode == TYPE_DMX_IN) {
-
+  }
+  else if (deviceSettings.portAmode == TYPE_DMX_IN)
+  {
+    LogLn("Port A configured as Input.");
     setDmxLed(DMX_ACT_LED_A, false);    // led dark when input
 
     dmxA.begin(DMX_DIR_A, artRDM.getDMX(portA[0], portA[1]));
     dmxA.dmxIn(true);
     dmxA.setInputCallback(dmxIn);
 
-    dataIn = (byte*) os_malloc(sizeof(byte) * 512);
+    dataIn = (byte*) os_malloc(sizeof(byte) * 512);   // allocate storage
     memset(dataIn, 0, 512);
-
-  } else if (deviceSettings.portAmode == TYPE_WS2812) {
-
+  }
+  else if (deviceSettings.portAmode == TYPE_WS2812)
+  {
+    LogLn("Port A configured as WS2812.");
     setDmxLed(DMX_ACT_LED_A, true);     // led bright when TYPE_WS2812
 
-    
-    digitalWrite(DMX_DIR_A, HIGH);
+    digitalWrite(DMX_DIR_A, HIGH);      // manually set to high
     pixDriver.setStrip(0, DMX_TX_A, deviceSettings.portAnumPix, deviceSettings.portApixConfig);
   }
   #endif
-  
-  if (deviceSettings.portBmode == TYPE_DMX_OUT || deviceSettings.portBmode == TYPE_RDM_OUT) {
+
+  // PORT B INITIALIZATION
+  if (deviceSettings.portBmode == TYPE_DMX_OUT || deviceSettings.portBmode == TYPE_RDM_OUT)
+  {
+    Log("Port B configured as Output for universe "); Log((String)portB[0]); Log(" in subnet "); Log((String)portB[1]); LogLn(".");
+    delay(100); // wait until logged
+    
     setDmxLed(DMX_ACT_LED_B, true);     // led bright when output
     
     dmxB.begin(DMX_DIR_B, artRDM.getDMX(portB[0], portB[1]));
@@ -121,8 +133,11 @@ void portSetup()
       dmxB.rdmSetCallBack(rdmReceivedB);
       dmxB.todSetCallBack(sendTodB);
     }
-    
-  } else if (deviceSettings.portBmode == TYPE_WS2812) {
+  } 
+  /// Port B cannot be configured as Input (only 1 Input allowed)
+  else if (deviceSettings.portBmode == TYPE_WS2812)
+  {
+    LogLn("Port B configured as WS2812.");
     setDmxLed(DMX_ACT_LED_B, true);     // led bright when TYPE_WS2812
     
     digitalWrite(DMX_DIR_B, HIGH);
@@ -137,7 +152,10 @@ void portSetup()
   pixDriver.allowInterruptDouble = WS2812_ALLOW_INT_DOUBLE;
 }
 
-void artStart() {
+void artStart()
+{
+  LogLn("Starting ArtNet/sACN...");
+  
   // Initialise out ArtNet
   if (isHotspot)
     artRDM.init(deviceSettings.hotspotIp, deviceSettings.hotspotSubnet, true, deviceSettings.nodeName, deviceSettings.longName, ARTNET_OEM, ESTA_MAN, MAC_array);
@@ -162,20 +180,24 @@ void artStart() {
   artRDM.setE131Uni(portA[0], portA[1], deviceSettings.portAsACNuni[0]);
   
   // Add extra Artnet ports for WS2812
-  if (deviceSettings.portAmode == TYPE_WS2812 && deviceSettings.portApixMode == FX_MODE_PIXEL_MAP) {
-    if (deviceSettings.portAnumPix > 170) {
+  if (deviceSettings.portAmode == TYPE_WS2812 && deviceSettings.portApixMode == FX_MODE_PIXEL_MAP)
+  {
+    if (deviceSettings.portAnumPix > 170) 
+    {
       portA[2] = artRDM.addPort(portA[0], 1, deviceSettings.portAuni[1], TYPE_DMX_OUT, deviceSettings.portAmerge);
       
       artRDM.setE131(portA[0], portA[2], e131);
       artRDM.setE131Uni(portA[0], portA[2], deviceSettings.portAsACNuni[1]);
     }
-    if (deviceSettings.portAnumPix > 340) {
+    if (deviceSettings.portAnumPix > 340) 
+    {
       portA[3] = artRDM.addPort(portA[0], 2, deviceSettings.portAuni[2], TYPE_DMX_OUT, deviceSettings.portAmerge);
       
       artRDM.setE131(portA[0], portA[3], e131);
       artRDM.setE131Uni(portA[0], portA[3], deviceSettings.portAsACNuni[2]);
     }
-    if (deviceSettings.portAnumPix > 510) {
+    if (deviceSettings.portAnumPix > 510) 
+    {
       portA[4] = artRDM.addPort(portA[0], 3, deviceSettings.portAuni[3], TYPE_DMX_OUT, deviceSettings.portAmerge);
       
       artRDM.setE131(portA[0], portA[4], e131);
@@ -198,20 +220,24 @@ void artStart() {
   artRDM.setE131Uni(portB[0], portB[1], deviceSettings.portBsACNuni[0]);
 
   // Add extra Artnet ports for WS2812
-  if (deviceSettings.portBmode == TYPE_WS2812 && deviceSettings.portBpixMode == FX_MODE_PIXEL_MAP) {
-    if (deviceSettings.portBnumPix > 170) {
+  if (deviceSettings.portBmode == TYPE_WS2812 && deviceSettings.portBpixMode == FX_MODE_PIXEL_MAP)
+  {
+    if (deviceSettings.portBnumPix > 170)
+    {
       portB[2] = artRDM.addPort(portB[0], 1, deviceSettings.portBuni[1], TYPE_DMX_OUT, deviceSettings.portBmerge);
       
       artRDM.setE131(portB[0], portB[2], e131);
       artRDM.setE131Uni(portB[0], portB[2], deviceSettings.portBsACNuni[1]);
     }
-    if (deviceSettings.portBnumPix > 340) {
+    if (deviceSettings.portBnumPix > 340)
+    {
       portB[3] = artRDM.addPort(portB[0], 2, deviceSettings.portBuni[2], TYPE_DMX_OUT, deviceSettings.portBmerge);
       
       artRDM.setE131(portB[0], portB[3], e131);
       artRDM.setE131Uni(portB[0], portB[3], deviceSettings.portBsACNuni[2]);
     }
-    if (deviceSettings.portBnumPix > 510) {
+    if (deviceSettings.portBnumPix > 510)
+    {
       portB[4] = artRDM.addPort(portB[0], 3, deviceSettings.portBuni[3], TYPE_DMX_OUT, deviceSettings.portBmerge);
       
       artRDM.setE131(portB[0], portB[4], e131);
@@ -243,18 +269,21 @@ void artStart() {
       nextNodeReport = millis() + 10000;
       nodeErrorTimeout = millis() + 30000;
       break;
+      
     case REASON_EXCEPTION_RST:
       artRDM.setNodeReport("ERROR: (EXCP) Unexpected device restart", ARTNET_RC_POWER_FAIL);
       strcpy(nodeError, "Restart error: EXCP");
       nextNodeReport = millis() + 10000;
       nodeErrorTimeout = millis() + 30000;
       break;
+      
     case REASON_SOFT_WDT_RST:
       artRDM.setNodeReport("ERROR: (SWDT) Unexpected device restart", ARTNET_RC_POWER_FAIL);
       strcpy(nodeError, "Error on Restart: SWDT");
       nextNodeReport = millis() + 10000;
       nodeErrorTimeout = millis() + 30000;
       break;
+      
     case REASON_DEEP_SLEEP_AWAKE:
       // not used
       break;
@@ -262,12 +291,17 @@ void artStart() {
   
   // Start artnet
   artRDM.begin();
+  LogLn("ArtNet/sACN started");
 
   yield();
 }
 
-void webStart() {
-  webServer.on("/", [](){
+void webStart()
+{
+  LogLn("Starting Webserver...");
+  
+  webServer.on("/", []()
+  {
     artRDM.pause();
     webServer.send_P(200, typeHTML, mainPage); //Send web page
     webServer.sendHeader("Connection", "close");
@@ -275,7 +309,8 @@ void webStart() {
     artRDM.begin();
   });
   
-  webServer.on("/style.css", [](){
+  webServer.on("/style.css", []()
+  {
     artRDM.pause();
 
     File f = SPIFFS.open("/style.css", "r");
@@ -297,12 +332,14 @@ void webStart() {
   
   webServer.on("/upload", HTTP_POST, webFirmwareUpdate, webFirmwareUpload);
 
-  webServer.on("/style", [](){
+  webServer.on("/style", []()
+  {
     webServer.send_P(200, typeHTML, cssUploadPage);
     webServer.sendHeader("Connection", "close");
   });
   
-  webServer.on("/style_delete", [](){
+  webServer.on("/style_delete", []()
+  {
     if (SPIFFS.exists("/style.css"))
       SPIFFS.remove("/style.css");
         
@@ -310,7 +347,8 @@ void webStart() {
     webServer.sendHeader("Connection", "close");
   });
 
-  webServer.on("/style_upload", HTTP_POST, [](){
+  webServer.on("/style_upload", HTTP_POST, []()
+  {
     webServer.send(200, "text/plain", "Upload successful!");
   }, [](){
     HTTPUpload& upload = webServer.upload();
@@ -335,16 +373,20 @@ void webStart() {
     }
   });
   
-  webServer.onNotFound([]() {
+  webServer.onNotFound([]() 
+  {
     webServer.send(404, "text/plain", "Page not found");
   });
-  
+
+  // Start webserver
   webServer.begin();
-  
+
+  LogLn("Webserver started");
   yield();
 }
 
-void wifiStart() {
+void wifiStart()
+{
   // If it's the default WiFi SSID, make it unique
   if (strcmp(deviceSettings.hotspotSSID, "espArtNetNode") == 0 || deviceSettings.hotspotSSID[0] == '\0')
     sprintf(deviceSettings.hotspotSSID, "espArtNetNode_%05u", (ESP.getChipId() & 0xFF));
@@ -403,7 +445,8 @@ void wifiStart() {
   yield();
 }
 
-void startHotspot() {
+void startHotspot()
+{
   yield();
 
   Log("Starting Hotspot with SSID "); Log(deviceSettings.hotspotSSID); Log(" IP: "); Log((String)deviceSettings.hotspotIp); LogLn(".");
