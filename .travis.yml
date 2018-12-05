@@ -9,7 +9,7 @@ before_install:
   - sudo ln -s /usr/local/share/arduino/arduino /usr/local/bin/arduino
   
 install:
-#  - ln -s $PWD /usr/local/share/arduino/libraries/Adafruit_FONA
+ - ln -s $PWD /usr/local/share/arduino/libraries/EthernetDmxNode
 #  - arduino --install-library "Adafruit SleepyDog Library,Adafruit MQTT Library"
 # boards manager not working on 1.6.7 - 1.6.8
  - arduino --pref "boardsmanager.additional.urls=http://arduino.esp8266.com/stable/package_esp8266com_index.json" --save-prefs
