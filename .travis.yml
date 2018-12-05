@@ -23,7 +23,7 @@ install:
  - arduino --pref "compiler.warning_level=all" --save-prefs
  
 script:
- - arduino --verify --board arduino:avr:d1_mini $PWD/source/EthernetDmxNode/EthernetDmxNode.ino
+ - arduino --verify --board arduino:esp8266:d1_mini $PWD/source/EthernetDmxNode/EthernetDmxNode.ino
  
 notifications:
   email:
