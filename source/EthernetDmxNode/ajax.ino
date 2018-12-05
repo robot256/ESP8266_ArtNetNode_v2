@@ -83,6 +83,7 @@ bool ajaxSave(uint8_t page, JsonObject& json) {
       break;
 
     case 2:     // Wifi
+      LogLn("Saving new WiFi settings");
       json.get<String>("wifiSSID").toCharArray(deviceSettings.wifiSSID, 40);
       json.get<String>("wifiPass").toCharArray(deviceSettings.wifiPass, 40);
       json.get<String>("hotspotSSID").toCharArray(deviceSettings.hotspotSSID, 20);
@@ -95,6 +96,7 @@ bool ajaxSave(uint8_t page, JsonObject& json) {
       break;
 
     case 3:     // IP Address & Node Name
+      LogLn("Saving new IP & node name settings");
       deviceSettings.ip = IPAddress(json["ipAddress"][0],json["ipAddress"][1],json["ipAddress"][2],json["ipAddress"][3]);
       deviceSettings.subnet = IPAddress(json["subAddress"][0],json["subAddress"][1],json["subAddress"][2],json["subAddress"][3]);
       deviceSettings.gateway = IPAddress(json["gwAddress"][0],json["gwAddress"][1],json["gwAddress"][2],json["gwAddress"][3]);
@@ -178,74 +180,26 @@ bool ajaxSave(uint8_t page, JsonObject& json) {
         bool updatePorts = false;
 
         // RDM and DMX input can't run together
-        if (newMode == TYPE_DMX_IN && deviceSettings.portBmode == TYPE_RDM_OUT) {
+        if (newMode == TYPE_DMX_IN && deviceSettings.portBmode == TYPE_RDM_OUT)
+        {
+          LogLn("Configured Port A as Input, but RDM and Input cannot run at the same time. Disabling RDM of Port B and setting A to Output.");
           deviceSettings.portBmode = TYPE_DMX_OUT;
           dmxB.rdmDisable();
         }
         
         if (newMode == TYPE_DMX_IN && json.containsKey("dmxInBroadcast"))
+        {
+          LogLn("Saving Port A to DMX IN");
           deviceSettings.dmxInBroadcast = IPAddress(json["dmxInBroadcast"][0],json["dmxInBroadcast"][1],json["dmxInBroadcast"][2],json["dmxInBroadcast"][3]);
+        }
          
         
-        if (newMode != oldMode) {
-  
+        if (newMode != oldMode) 
+        {
+          LogLn("New mode is another than the old mode. Restarting soon");
           // Store the nem mode to settings
           deviceSettings.portAmode = newMode;
-
           doReboot = true;
-          /*
-          if (oldMode == TYPE_WS2812) {
-            doReboot = true;
-            
-            // Set pixel strip length to zero
-            pixDriver.updateStrip(0, 0, deviceSettings.portApixConfig);
-  
-            // Close ports from pixels - library handles if they dont exist
-            for (uint8_t x = 2; x <= 4; x++)
-              artRDM.closePort(portA[0], portA[x]);
-
-            // Start our DMX port
-            dmxA.begin(DMX_DIR_A, artRDM.getDMX(portA[0], portA[1]));
-            
-          } else if (oldMode == TYPE_DMX_IN)
-            dmxA.dmxIn(false);
-          else if (oldMode == TYPE_RDM_OUT)
-            dmxA.rdmDisable();
-
-          // Start DMX output with no DMX
-          if (newMode == TYPE_DMX_OUT) {
-            
-            
-            artRDM.setPortType(portA[0], portA[1], DMX_OUT);
-
-          // Start DMX output with RDM
-          } else if (newMode == TYPE_RDM_OUT) {
-            dmxA.rdmEnable(ESTA_MAN, ESTA_DEV);
-            dmxA.rdmSetCallBack(rdmReceivedA);
-            dmxA.todSetCallBack(sendTodA);
-            artRDM.setPortType(portA[0], portA[1], RDM_OUT);
-
-          // Start DMX input
-          } else if (newMode == TYPE_DMX_IN) {
-            dmxA.dmxIn(true);
-            dmxA.setInputCallback(dmxIn);
-            
-            artRDM.setPortType(portA[0], portA[1], DMX_IN);
-
-          // Start WS2812 output
-          } else if (newMode == TYPE_WS2812) {
-            doReboot = true;
-
-            dmxA.end();
-            
-            artRDM.setPortType(portA[0], portA[1], TYPE_DMX_OUT);
-            updatePorts = true;
-            
-            // Initialize the pixel strip
-            pixDriver.setStrip(0, DMX_TX_A, deviceSettings.portAnumPix, deviceSettings.portApixConfig);
-            
-          }
-          */
         }
         
         // Update the Artnet class
@@ -253,6 +207,12 @@ bool ajaxSave(uint8_t page, JsonObject& json) {
         artRDM.setSubNet(portA[0], deviceSettings.portAsub);
         artRDM.setUni(portA[0], portA[1], deviceSettings.portAuni[0]);
         artRDM.setMerge(portA[0], portA[1], deviceSettings.portAmerge);
+
+        // Logging Settings
+        Log("Saving Port A settings: sAcn: "); LogLn((String)deviceSettings.portAprot);
+        Log("Saving ArtNet Settings for Port A. Uni: "); Log((String)deviceSettings.portAuni[0]); Log(" Subnet: "); Log((String)deviceSettings.portAsub); LogLn(".");
+        delay(100); // wait until logged
+        yield();
 
         // Lengthen or shorten our pixel strip & handle required Artnet ports
         if (newMode == TYPE_WS2812 && !doReboot) {
@@ -352,60 +312,19 @@ bool ajaxSave(uint8_t page, JsonObject& json) {
       
       // RDM and DMX input can't run together
       if (newMode == TYPE_RDM_OUT && deviceSettings.portAmode == TYPE_DMX_IN)
+      {
+        LogLn("Configured Port B as Input, but RDM and Input cannot run at the same time. Setting A to Output.");
         newMode = TYPE_DMX_OUT;
+      }
       
-      if (newMode != oldMode) {
+      if (newMode != oldMode)
+      {
+        LogLn("New mode is another than the old mode. Restarting soon");
         
         // Store the nem mode to settings
         deviceSettings.portBmode = newMode;
 
         doReboot = true;
-
-        /*
-        if (oldMode == TYPE_WS2812) {
-          doReboot = true;
-          
-          // Set pixel strip length to zero
-          pixDriver.updateStrip(1, 0, deviceSettings.portBpixConfig);
-
-          // Close ports from pixels - library handles if they dont exist
-          for (uint8_t x = 2; x <= 4; x++)
-            artRDM.closePort(portB[0], portB[x]);
-
-          // Start our DMX port
-          dmxB.begin(DMX_DIR_B, artRDM.getDMX(portB[0], portB[1]));
-          
-          
-        } else if (oldMode == TYPE_RDM_OUT)
-          dmxB.rdmDisable();
-        
-        
-
-        // Start DMX output with no DMX
-        if (newMode == TYPE_DMX_OUT) {
-          artRDM.setPortType(portB[0], portB[1], DMX_OUT);
-
-        // Start DMX output with RDM
-        } else if (newMode == TYPE_RDM_OUT) {
-          dmxB.rdmEnable(ESTA_MAN, ESTA_DEV);
-          dmxB.rdmSetCallBack(rdmReceivedB);
-          dmxB.todSetCallBack(sendTodB);
-          artRDM.setPortType(portB[0], portB[1], RDM_OUT);
-
-        // Start WS2812 output
-        } else if (newMode == TYPE_WS2812) {
-          doReboot = true;
-
-          
-          //dmxB.end();
-          artRDM.setPortType(portB[0], portB[1], TYPE_DMX_OUT);
-          updatePorts = true;
-          
-          // Initialize the pixel strip
-          pixDriver.setStrip(1, DMX_TX_B, deviceSettings.portBnumPix, deviceSettings.portBpixConfig);
-          
-        }
-        */
       }
       
       // Update the Artnet class
@@ -413,6 +332,12 @@ bool ajaxSave(uint8_t page, JsonObject& json) {
       artRDM.setSubNet(portB[0], deviceSettings.portBsub);
       artRDM.setUni(portB[0], portB[1], deviceSettings.portBuni[0]);
       artRDM.setMerge(portB[0], portB[1], deviceSettings.portBmerge);
+
+      // Logging Settings
+      Log("Saving Port B settings: sAcn: "); LogLn((String)deviceSettings.portBprot);
+      Log("Saving ArtNet Settings for Port B. Uni: "); Log((String)deviceSettings.portBuni[0]); Log(" Subnet: "); Log((String)deviceSettings.portBsub); LogLn(".");
+      delay(100); // wait until logged
+      yield();
 
       // Lengthen or shorten our pixel strip & handle required Artnet ports
       if (newMode == TYPE_WS2812 && !doReboot) {

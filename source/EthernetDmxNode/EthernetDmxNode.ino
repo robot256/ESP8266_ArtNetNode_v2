@@ -46,7 +46,7 @@ This competition will open to the general public a couple of weeks after the pri
 #include <EEPROM.h>
 #include <FS.h>
 #include "store.h"
-#include "DmxRdmLib.h"
+#include "espDMX.h"
 #include "espArtNetRDM.h"
 #include "ws2812Driver.h"
 #include "wsFX.h"
@@ -78,7 +78,7 @@ uint8_t dmxInSeqID = 0;
 uint8_t statusLedData[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
 uint32_t statusTimer = 0;
 
-esp8266ArtNetRDM artRDM;
+espArtNetRDM artRDM;
 ESP8266WebServer webServer(80);
 DynamicJsonBuffer jsonBuffer;
 ws2812Driver pixDriver;
