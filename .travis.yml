@@ -7,6 +7,7 @@ before_install:
   - tar xf arduino-1.6.5-linux64.tar.xz
   - sudo mv arduino-1.6.5 /usr/local/share/arduino
   - sudo ln -s /usr/local/share/arduino/arduino /usr/local/bin/arduino
+  
 install:
 #  - ln -s $PWD /usr/local/share/arduino/libraries/Adafruit_FONA
 #  - arduino --install-library "Adafruit SleepyDog Library,Adafruit MQTT Library"
@@ -14,14 +15,16 @@ install:
  - arduino --pref "boardsmanager.additional.urls=http://arduino.esp8266.com/stable/package_esp8266com_index.json" --save-prefs
 # install lib arduino json not working in 1.6.5
 #  - arduino --install-library "ArduinoJson"
-  - git clone https://github.com/bblanchon/ArduinoJson /usr/local/share/arduino/libraries/ArduinoJson
-  - git clone https://github.com/JonasArnold/ArtNetE131Lib_esp8266.git /usr/local/share/arduino/libraries/ArtNetE131Lib
-  - git clone https://github.com/JonasArnold/DmxRdmLib_esp8266.git /usr/local/share/arduino/libraries/DmxRdmLib
-  - arduino --install-boards esp8266:esp8266
-  - arduino --board esp8266:esp8266:d1_mini --save-prefs
-  - arduino --pref "compiler.warning_level=all" --save-prefs
+ - git clone https://github.com/bblanchon/ArduinoJson /usr/local/share/arduino/libraries/ArduinoJson
+ - git clone https://github.com/JonasArnold/ArtNetE131Lib_esp8266.git /usr/local/share/arduino/libraries/ArtNetE131Lib
+ - git clone https://github.com/JonasArnold/DmxRdmLib_esp8266.git /usr/local/share/arduino/libraries/DmxRdmLib
+ - arduino --install-boards esp8266:esp8266
+ - arduino --board esp8266:esp8266:d1_mini --save-prefs
+ - arduino --pref "compiler.warning_level=all" --save-prefs
+ 
 script:
-  - arduino --verify --board arduino:avr:d1_mini $PWD/source/EthernetDmxNode/EthernetDmxNode.ino
+ - arduino --verify --board arduino:avr:d1_mini $PWD/source/EthernetDmxNode/EthernetDmxNode.ino
+ 
 notifications:
   email:
     on_success: change
