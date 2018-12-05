@@ -1,4 +1,4 @@
-# EthernetDmxNode for ESP8266
+# EthernetDmxNode for ESP8266 [![Build Status](https://travis-ci.com/JonasArnold/EthernetDmxNode_esp8266.svg?branch=master)](https://travis-ci.com/JonasArnold/EthernetDmxNode_esp8266)
 Forked from [mtongnz](https://github.com/mtongnz/ESP8266_ArtNetNode_v2)
 
 The main goal of this version is to implement Multicast and Unicast sACN. In the original version by mtongnz only Multicast is implemented.
