@@ -30,11 +30,6 @@ These prizes will be based on the first person to submit a solution that I judge
 This competition will open to the general public a couple of weeks after the private code release to supporters.
 */
 
-// Include extern files
-#include "index.h"
-#include "css.h"
-#include "cssUploadPage.h"
-
 // Include definitions
 #include "globals.h"
 
@@ -50,6 +45,13 @@ This competition will open to the general public a couple of weeks after the pri
 #include "espArtNetRDM.h"
 #include "ws2812Driver.h"
 #include "wsFX.h"
+
+
+// Include external files
+#include "index.h"
+#include "css.h"
+#include "cssUploadPage.h"
+
 
 extern "C" {
   #include "user_interface.h"
