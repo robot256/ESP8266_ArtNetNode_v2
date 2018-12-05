@@ -21,7 +21,7 @@ install:
   - arduino --board esp8266:esp8266:d1_mini --save-prefs
   - arduino --pref "compiler.warning_level=all" --save-prefs
 script:
-  - arduino --verify --board arduino:avr:uno $PWD/examples/FONAtest/FONAtest.ino
+  - arduino --verify --board arduino:avr:d1_mini $PWD/source/EthernetDmxNode/EthernetDmxNode.ino
 notifications:
   email:
     on_success: change
