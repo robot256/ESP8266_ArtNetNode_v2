@@ -260,6 +260,23 @@ void loop(void)
   #endif
   dmxB.handler();
 
+  // Handle Serial commands
+  if (Serial.available() > 0)
+  {
+    String incomingData = Serial.readString();
+    if(incomingData.equals("portA"))
+    {
+      Log("ArtNet Settings for Port A. Uni: "); //Log((String)deviceSettings.portAuni[0]); Log(" Subnet: "); Log((String)deviceSettings.portAsub); Log(" sAcn: "); Log(deviceSettings.portAprot == PROT_ARTNET_SACN ? "true" : "false"); LogLn(".");
+    }
+    else if(incomingData.equals("portB"))
+    {
+      Log("ArtNet Settings for Port B. Uni: "); //Log((String)deviceSettings.portBuni[0]); Log(" Subnet: "); Log((String)deviceSettings.portBsub); Log(" sAcn: "); Log(deviceSettings.portBprot == PROT_ARTNET_SACN ? "true" : "false"); LogLn(".");
+    }
+    else
+    {
+      Log("Unknown serial command "); LogLn(incomingData);
+    }
+  }
 
   // Do Pixel FX on port A
   #ifndef DEBUG_ENABLE  // if debug is enabled the port A is note used
