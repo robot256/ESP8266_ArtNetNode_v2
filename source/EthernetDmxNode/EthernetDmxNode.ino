@@ -41,8 +41,8 @@ This competition will open to the general public a couple of weeks after the pri
 #include <EEPROM.h>
 #include <FS.h>
 #include "store.h"
-#include "espDMX.h"
-#include "espArtNetRDM.h"
+#include "DmxRdmLib.h"
+#include "ArtNetE131Lib.h"
 #include "ws2812Driver.h"
 #include "wsFX.h"
 
