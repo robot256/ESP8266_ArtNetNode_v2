@@ -266,11 +266,11 @@ void loop(void)
     String incomingData = Serial.readString();
     if(incomingData.equals("portA"))
     {
-      Log("ArtNet Settings for Port A. Uni: "); Log((String)deviceSettings.portAuni[0]); Log(" Subnet: "); Log((String)deviceSettings.portAsub); Log(" sAcn: "); Log(deviceSettings.portAprot == p_protocol::PROT_SACN_UNICAST ? "true" : "false"); LogLn(".");
+      Log("ArtNet Settings for Port A. Uni: "); Log((String)deviceSettings.portAuni[0]); Log(" Subnet: "); Log((String)deviceSettings.portAsub); Log(" Protocol Type: "); Log((String)deviceSettings.portAprot); LogLn(".");
     }
     else if(incomingData.equals("portB"))
     {
-      Log("ArtNet Settings for Port B. Uni: "); Log((String)deviceSettings.portBuni[0]); Log(" Subnet: "); Log((String)deviceSettings.portBsub); Log(" sAcn: "); Log(deviceSettings.portBprot == p_protocol::PROT_SACN_UNICAST ? "true" : "false"); LogLn(".");
+      Log("ArtNet Settings for Port B. Uni: "); Log((String)deviceSettings.portBuni[0]); Log(" Subnet: "); Log((String)deviceSettings.portBsub); Log(" Protocol Type: "); Log((String)deviceSettings.portBprot); LogLn(".");
     }
     else
     {
