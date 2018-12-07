@@ -167,8 +167,9 @@ void artStart()
 
   // Add Group
   portA[0] = artRDM.addGroup(deviceSettings.portAnet, deviceSettings.portAsub);
-  
-  bool e131 = (deviceSettings.portAprot == PROT_ARTNET_SACN) ? true : false;
+
+  // copy the protocol type from the enum to the other
+  protocol_type protocolTypeA = (protocol_type)(int)deviceSettings.portAprot;   
 
   // WS2812 uses TYPE_DMX_OUT - the rest use the value assigned
   if (deviceSettings.portAmode == TYPE_WS2812)
@@ -176,7 +177,7 @@ void artStart()
   else
     portA[1] = artRDM.addPort(portA[0], 0, deviceSettings.portAuni[0], deviceSettings.portAmode, deviceSettings.portAmerge);
 
-  artRDM.setE131(portA[0], portA[1], e131);
+  artRDM.setProtocolType(portA[0], portA[1], protocolTypeA);
   artRDM.setE131Uni(portA[0], portA[1], deviceSettings.portAsACNuni[0]);
   
   // Add extra Artnet ports for WS2812
@@ -186,21 +187,21 @@ void artStart()
     {
       portA[2] = artRDM.addPort(portA[0], 1, deviceSettings.portAuni[1], TYPE_DMX_OUT, deviceSettings.portAmerge);
       
-      artRDM.setE131(portA[0], portA[2], e131);
+      artRDM.setProtocolType(portA[0], portA[2], protocolTypeA);
       artRDM.setE131Uni(portA[0], portA[2], deviceSettings.portAsACNuni[1]);
     }
     if (deviceSettings.portAnumPix > 340) 
     {
       portA[3] = artRDM.addPort(portA[0], 2, deviceSettings.portAuni[2], TYPE_DMX_OUT, deviceSettings.portAmerge);
       
-      artRDM.setE131(portA[0], portA[3], e131);
+      artRDM.setProtocolType(portA[0], portA[3], protocolTypeA);
       artRDM.setE131Uni(portA[0], portA[3], deviceSettings.portAsACNuni[2]);
     }
     if (deviceSettings.portAnumPix > 510) 
     {
       portA[4] = artRDM.addPort(portA[0], 3, deviceSettings.portAuni[3], TYPE_DMX_OUT, deviceSettings.portAmerge);
       
-      artRDM.setE131(portA[0], portA[4], e131);
+      artRDM.setProtocolType(portA[0], portA[4], protocolTypeA);
       artRDM.setE131Uni(portA[0], portA[4], deviceSettings.portAsACNuni[3]);
     }
   }
@@ -208,7 +209,10 @@ void artStart()
 
   // Add Group
   portB[0] = artRDM.addGroup(deviceSettings.portBnet, deviceSettings.portBsub);
-  e131 = (deviceSettings.portBprot == PROT_ARTNET_SACN) ? true : false;
+
+  
+  // copy the protocol type from the enum to the other
+  protocol_type protocolTypeB = (protocol_type)(int)deviceSettings.portBprot;   
   
   // WS2812 uses TYPE_DMX_OUT - the rest use the value assigned
   if (deviceSettings.portBmode == TYPE_WS2812)
@@ -216,7 +220,7 @@ void artStart()
   else
     portB[1] = artRDM.addPort(portB[0], 0, deviceSettings.portBuni[0], deviceSettings.portBmode, deviceSettings.portBmerge);
 
-  artRDM.setE131(portB[0], portB[1], e131);
+  artRDM.setProtocolType(portB[0], portB[1], protocolTypeB);
   artRDM.setE131Uni(portB[0], portB[1], deviceSettings.portBsACNuni[0]);
 
   // Add extra Artnet ports for WS2812
@@ -226,21 +230,21 @@ void artStart()
     {
       portB[2] = artRDM.addPort(portB[0], 1, deviceSettings.portBuni[1], TYPE_DMX_OUT, deviceSettings.portBmerge);
       
-      artRDM.setE131(portB[0], portB[2], e131);
+      artRDM.setProtocolType(portB[0], portB[2], protocolTypeB);
       artRDM.setE131Uni(portB[0], portB[2], deviceSettings.portBsACNuni[1]);
     }
     if (deviceSettings.portBnumPix > 340)
     {
       portB[3] = artRDM.addPort(portB[0], 2, deviceSettings.portBuni[2], TYPE_DMX_OUT, deviceSettings.portBmerge);
       
-      artRDM.setE131(portB[0], portB[3], e131);
+      artRDM.setProtocolType(portB[0], portB[3], protocolTypeB);
       artRDM.setE131Uni(portB[0], portB[3], deviceSettings.portBsACNuni[2]);
     }
     if (deviceSettings.portBnumPix > 510)
     {
       portB[4] = artRDM.addPort(portB[0], 3, deviceSettings.portBuni[3], TYPE_DMX_OUT, deviceSettings.portBmerge);
       
-      artRDM.setE131(portB[0], portB[4], e131);
+      artRDM.setProtocolType(portB[0], portB[4], protocolTypeB);
       artRDM.setE131Uni(portB[0], portB[4], deviceSettings.portBsACNuni[3]);
     }
   }

@@ -74,7 +74,7 @@ extern "C" {
 #define GREEN 0x02
 #define ORANGE 0x03
 
-uint8_t portA[5], portB[5];
+uint8_t portA[5], portB[5];  // 0: group, 1: port, 2-5 extra artnet out ports for pixel
 uint8_t MAC_array[6];
 uint8_t dmxInSeqID = 0;
 uint8_t statusLedData[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
@@ -266,11 +266,11 @@ void loop(void)
     String incomingData = Serial.readString();
     if(incomingData.equals("portA"))
     {
-      Log("ArtNet Settings for Port A. Uni: "); //Log((String)deviceSettings.portAuni[0]); Log(" Subnet: "); Log((String)deviceSettings.portAsub); Log(" sAcn: "); Log(deviceSettings.portAprot == PROT_ARTNET_SACN ? "true" : "false"); LogLn(".");
+      Log("ArtNet Settings for Port A. Uni: "); Log((String)deviceSettings.portAuni[0]); Log(" Subnet: "); Log((String)deviceSettings.portAsub); Log(" sAcn: "); Log(deviceSettings.portAprot == PROT_SACN_UNICAST ? "true" : "false"); LogLn(".");
     }
     else if(incomingData.equals("portB"))
     {
-      Log("ArtNet Settings for Port B. Uni: "); //Log((String)deviceSettings.portBuni[0]); Log(" Subnet: "); Log((String)deviceSettings.portBsub); Log(" sAcn: "); Log(deviceSettings.portBprot == PROT_ARTNET_SACN ? "true" : "false"); LogLn(".");
+      Log("ArtNet Settings for Port B. Uni: "); Log((String)deviceSettings.portBuni[0]); Log(" Subnet: "); Log((String)deviceSettings.portBsub); Log(" sAcn: "); Log(deviceSettings.portBprot == PROT_SACN_UNICAST ? "true" : "false"); LogLn(".");
     }
     else
     {
@@ -504,10 +504,7 @@ void addressHandle() {
   deviceSettings.portAuni[0] = artRDM.getUni(portA[0], portA[1]);
   deviceSettings.portAmerge = artRDM.getMerge(portA[0], portA[1]);
 
-  if (artRDM.getE131(portA[0], portA[1]))
-    deviceSettings.portAprot = PROT_ARTNET_SACN;
-  else
-    deviceSettings.portAprot = PROT_ARTNET;
+  deviceSettings.portAprot = artRDM.getProtocolType(portA[0], portA[1]);
   #endif
     
   deviceSettings.portBnet = artRDM.getNet(portB[0]);
@@ -515,10 +512,10 @@ void addressHandle() {
   deviceSettings.portBuni[0] = artRDM.getUni(portB[0], portB[1]);
   deviceSettings.portBmerge = artRDM.getMerge(portB[0], portB[1]);
   
-  if (artRDM.getE131(portB[0], portB[1]))
-    deviceSettings.portBprot = PROT_ARTNET_SACN;
+  if (artRDM.getProtocolType(portB[0], portB[1]) != protocol_type::ARTNET)
+    deviceSettings.portBprot = SACN_UNICAST;
   else
-    deviceSettings.portBprot = PROT_ARTNET;
+    deviceSettings.portBprot = ARTNET;
   
   // Store everything to EEPROM
   eepromSave();
@@ -675,4 +672,3 @@ void setDmxLed(uint8_t pin, bool on)
     analogWrite(pin, 0);
   }
 }
-

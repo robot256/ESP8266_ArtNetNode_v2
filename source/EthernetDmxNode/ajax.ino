@@ -154,7 +154,9 @@ bool ajaxSave(uint8_t page, JsonObject& json) {
     case 4:     // Port A
       {
         deviceSettings.portAprot = (uint8_t)json["portAprot"];
-        bool e131 = (deviceSettings.portAprot == PROT_ARTNET_SACN) ? true : false;
+
+        // copy the protocol type from the other enum
+        protocol_type protocolTypeA = (protocol_type)(int)deviceSettings.portAprot;
         
         deviceSettings.portAmerge = (uint8_t)json["portAmerge"];
   
@@ -171,7 +173,7 @@ bool ajaxSave(uint8_t page, JsonObject& json) {
           if ((uint16_t)json["portAsACNuni"][x] > 0 && (uint16_t)json["portAsACNuni"][x] < 64000)
             deviceSettings.portAsACNuni[x] = (uint16_t)json["portAsACNuni"][x];
 
-          artRDM.setE131(portA[0], portA[x+1], e131);
+          artRDM.setProtocolType(portA[0], portA[x+1], protocolTypeA);
           artRDM.setE131Uni(portA[0], portA[x+1], deviceSettings.portAsACNuni[x]);
         }
   
@@ -285,7 +287,9 @@ bool ajaxSave(uint8_t page, JsonObject& json) {
     case 5:     // Port B
     {
       deviceSettings.portBprot = (uint8_t)json["portBprot"];
-      bool e131 = (deviceSettings.portBprot == PROT_ARTNET_SACN) ? true : false;
+      
+      // copy the protocol type form the enum to the other enum
+      protocol_type protocolTypeB = (protocol_type)(int)deviceSettings.portBprot;
       
       deviceSettings.portBmerge = (uint8_t)json["portBmerge"];
 
@@ -302,7 +306,7 @@ bool ajaxSave(uint8_t page, JsonObject& json) {
         if ((uint16_t)json["portBsACNuni"][x] > 0 && (uint16_t)json["portBsACNuni"][x] < 64000)
           deviceSettings.portBsACNuni[x] = (uint16_t)json["portBsACNuni"][x];
 
-        artRDM.setE131(portB[0], portB[x+1], e131);
+        artRDM.setProtocolType(portB[0], portB[x+1], protocolTypeB);
         artRDM.setE131Uni(portB[0], portB[x+1], deviceSettings.portBsACNuni[x]);
       }
 
@@ -569,7 +573,7 @@ void ajaxLoad(uint8_t page, JsonObject& jsonReply) {
 
       // Only Artnet supported for receiving right now
       if (deviceSettings.portAmode == TYPE_DMX_IN)
-        jsonReply["portAprot"] = PROT_ARTNET;
+        jsonReply["portAprot"] = ARTNET;
       else
         jsonReply["portAprot"] = deviceSettings.portAprot;
  
@@ -662,4 +666,3 @@ void ajaxLoad(uint8_t page, JsonObject& jsonReply) {
       jsonReply["message"] = "Invalid or incomplete data received.";
   }
 }
-
