@@ -409,24 +409,38 @@ void wifiStart()
   
   if (deviceSettings.wifiSSID[0] != '\0')
   {
-    Log("Connecting to WiFi "); Log(deviceSettings.wifiSSID); Log(" as "); Log(deviceSettings.nodeName); LogLn("...");
-    WiFi.begin(deviceSettings.wifiSSID, deviceSettings.wifiPass);
-    WiFi.mode(WIFI_STA);
+    Log("Connecting to WiFi "); Log(deviceSettings.wifiSSID); Log(" as "); Log(deviceSettings.nodeName);
+	// Bring up the WiFi connection
+    WiFi.mode( WIFI_STA );
+    WiFi.persistent( false );		//prevent excesive writing to flash
+    WiFi.setAutoConnect(true);
+    WiFi.setAutoReconnect(true);
     WiFi.hostname(deviceSettings.nodeName);
+    WiFi.begin(deviceSettings.wifiSSID, deviceSettings.wifiPass);
     
     unsigned long endTime = millis() + (deviceSettings.hotspotDelay * 1000);
 
-    if (deviceSettings.dhcpEnable)
-    {
-      while (WiFi.status() != WL_CONNECTED && endTime > millis())
-        yield();
-
-      if (millis() >= endTime)
-      {
-        LogLn("Timeout reached connecting to the WiFi.");
+	while (WiFi.status() != WL_CONNECTED) {
+      // Check to see if credentials are wrong
+      if (WiFi.status() == WL_CONNECT_FAILED) {
+        LogLn("Failed to connect to WiFi. Please verify credentials!");
+         delay(1000);
         startHotspot();
       }
-      
+      delay(100);
+      Log(".");
+      delay(500);
+      // Only try for 5 seconds.
+      if (millis() >= endTime) {
+		LogLn(".");
+        Log("Failed to connect to WiFi");
+        startHotspot();
+        return;
+      }
+    }
+	
+    if (deviceSettings.dhcpEnable)
+    {
       deviceSettings.ip = WiFi.localIP();
       deviceSettings.subnet = WiFi.subnetMask();
 

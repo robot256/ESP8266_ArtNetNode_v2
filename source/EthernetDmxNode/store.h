@@ -114,9 +114,12 @@ void eepromLoad() {
   } else {
     eepromSave();
     delay(500);
-    
+	WiFi.persistent(false);
+	
     ESP.eraseConfig();
+	
+	WiFi.disconnect();
+    ESP.restart();
     while(1);
   }
 }
-
