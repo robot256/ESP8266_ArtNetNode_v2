@@ -115,7 +115,8 @@ const char mainPage[] PROGMEM = R"=====(
             <p class=right>
                <select class=select name=portAprot>
                   <option value=0>Artnet v4
-                  <option value=1>Artnet v4 with sACN DMX
+                  <option value=1>sACN Unicast
+                  <option value=2>sACN Multicast
                </select>
             <p class=left>Merge Mode:
             <p class=right>
@@ -162,7 +163,8 @@ const char mainPage[] PROGMEM = R"=====(
             <p class=right>
                <select class=select name=portBprot>
                   <option value=0>Artnet v4
-                  <option value=1>Artnet v4 with sACN DMX
+                  <option value=1>sACN Unicast
+                  <option value=2>sACN Multicast
                </select>
             <p class=left>Merge Mode:
             <p class=right>
