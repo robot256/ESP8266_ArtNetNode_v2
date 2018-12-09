@@ -75,7 +75,7 @@ extern "C" {
 #define ORANGE 0x03
 
 uint8_t portA[5], portB[5];  // 0: group, 1: port, 2-5 extra artnet out ports for pixel
-uint8_t MAC_array[6];
+uint8_t macAddress[6];
 uint8_t dmxInSeqID = 0;
 uint8_t statusLedData[9] = { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 uint32_t statusTimer = 0;

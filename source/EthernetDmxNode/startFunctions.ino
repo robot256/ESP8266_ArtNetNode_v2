@@ -158,9 +158,9 @@ void artStart()
   
   // Initialise out ArtNet
   if (isHotspot)
-    artRDM.init(deviceSettings.hotspotIp, deviceSettings.hotspotSubnet, true, deviceSettings.nodeName, deviceSettings.longName, ARTNET_OEM, ESTA_MAN, MAC_array);
+    artRDM.init(deviceSettings.hotspotIp, deviceSettings.hotspotSubnet, true, deviceSettings.nodeName, deviceSettings.longName, ARTNET_OEM, ESTA_MAN, macAddress);
   else
-    artRDM.init(deviceSettings.ip, deviceSettings.subnet, deviceSettings.dhcpEnable, deviceSettings.nodeName, deviceSettings.longName, ARTNET_OEM, ESTA_MAN, MAC_array);
+    artRDM.init(deviceSettings.ip, deviceSettings.subnet, deviceSettings.dhcpEnable, deviceSettings.nodeName, deviceSettings.longName, ARTNET_OEM, ESTA_MAN, macAddress);
 
   // Set firmware
   artRDM.setFirmwareVersion(ART_FIRM_VERSION);
@@ -441,7 +441,7 @@ void wifiStart()
     sprintf(wifiStatus, "Wifi connected.<br />SSID: %s", deviceSettings.wifiSSID);
     LogLn("WiFi Connection Success.");
     setStatusLed(GREEN);    //Green when connected to Wlan
-    WiFi.macAddress(MAC_array);
+    WiFi.macAddress(macAddress);
     
   } else
     startHotspot();
@@ -460,7 +460,7 @@ void startHotspot()
 
   sprintf(wifiStatus, "No Wifi. Hotspot started.<br />\nHotspot SSID: %s", deviceSettings.hotspotSSID);
   setStatusLed(ORANGE);   //Orange when in Hotspot Mode
-  WiFi.macAddress(MAC_array);
+  WiFi.macAddress(macAddress);
   
   isHotspot = true;
   

@@ -443,9 +443,9 @@ void ajaxLoad(uint8_t page, JsonObject& jsonReply) {
 
   // Get MAC Address
   char MAC_char[30] = "";
-  sprintf(MAC_char, "%02X", MAC_array[0]);
+  sprintf(MAC_char, "%02X", macAddress[0]);
   for (int i = 1; i < 6; ++i)
-    sprintf(MAC_char, "%s:%02X", MAC_char, MAC_array[i]);
+    sprintf(MAC_char, "%s:%02X", MAC_char, macAddress[i]);
   
   jsonReply["macAddress"] = String(MAC_char);
 
