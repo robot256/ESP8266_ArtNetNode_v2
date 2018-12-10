@@ -39,6 +39,7 @@ This competition will open to the general public a couple of weeks after the pri
 #include <ESP8266WebServer.h>
 #include <ArduinoJson.h>
 #include <EEPROM.h>
+#include <E131.h>
 #include <FS.h>
 #include "store.h"
 #include "DmxRdmLib.h"
@@ -81,6 +82,8 @@ uint8_t statusLedData[9] = { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 uint32_t statusTimer = 0;
 
 espArtNetRDM artRDM;
+E131 e131A;
+E131 e131B;
 ESP8266WebServer webServer(80);
 DynamicJsonBuffer jsonBuffer;
 ws2812Driver pixDriver;
@@ -340,6 +343,28 @@ void loop(void)
 		statusTimer = millis() + 1000;
 	}
 }
+
+void e131handler()
+{
+#ifndef DEBUG_ENABLE  // if debug is enabled the port A is not used
+	uint16_t numChannelsA = e131A.parsePacket();  // if there is data
+	if (numChannelsA) {
+		setDmxLed(DMX_ACT_LED_A, true);   // flash Led => to High
+		dmxA.setChans(e131A.data);   // set dmx channels
+		setDmxLed(DMX_ACT_LED_A, false);   // flash Led => to Low
+	}
+#endif // !DEBUG_ENABLED
+
+
+	uint16_t numChannelsB = e131B.parsePacket();  // if there is data
+	if (numChannelsB) {
+		setDmxLed(DMX_ACT_LED_B, true);   // flash Led => to High
+		dmxB.setChans(e131B.data);    // set dmx channels
+		setDmxLed(DMX_ACT_LED_B, false);   // flash Led => to Low
+	}
+
+}
+
 
 void dmxHandle(uint8_t group, uint8_t port, uint16_t numChans, bool syncEnabled)
 {
