@@ -17,6 +17,7 @@ install:
 #  - arduino --install-library "ArduinoJson"
  - git clone https://github.com/bblanchon/ArduinoJson /usr/local/share/arduino/libraries/ArduinoJson
  - git clone https://github.com/JonasArnold/ArtNetE131Lib_esp8266.git /usr/local/share/arduino/libraries/ArtNetE131Lib
+ - git clone https://github.com/JonasArnold/DmxRdmLib_esp8266.git /usr/local/share/arduino/libraries/DmxRdmLib
  - git clone https://github.com/forkineye/E131.git /usr/local/share/arduino/libraries/E131
  - arduino --install-boards esp8266:esp8266
  - arduino --board esp8266:esp8266:d1_mini --save-prefs
