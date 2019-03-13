@@ -147,7 +147,7 @@ void setup(void)
 
 	// Start Serial
 #ifdef DEBUG_ENABLE
-	Serial.begin(115200);
+	Serial.begin(74880);
 	Serial.println(); // empty because of crap before serial starts
 #endif
 	LogLn("Starting Setup");

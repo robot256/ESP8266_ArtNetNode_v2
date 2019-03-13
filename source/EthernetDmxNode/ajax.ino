@@ -225,10 +225,10 @@ bool ajaxSave(uint8_t page, JsonObject& json) {
 		artRDM.setMerge(portA[0], portA[1], deviceSettings.portAmerge);
 
 		// Logging Settings
+    yield();
 		Log("Saving Port A settings: sAcn: "); LogLn((String)deviceSettings.portAprot);
 		Log("Saving ArtNet Settings for Port A. Uni: "); Log((String)deviceSettings.portAuni[0]); Log(" Subnet: "); Log((String)deviceSettings.portAsub); LogLn(".");
-		delay(100); // wait until logged
-		yield();
+		delay(1000); // wait until logged
 
 		// Lengthen or shorten our pixel strip & handle required Artnet ports
 		if (newMode == TYPE_WS2812 && !doReboot) {
@@ -363,10 +363,11 @@ bool ajaxSave(uint8_t page, JsonObject& json) {
 		artRDM.setMerge(portB[0], portB[1], deviceSettings.portBmerge);
 
 		// Logging Settings
-		Log("Saving Port B settings: sAcn: "); LogLn((String)deviceSettings.portBprot);
+    yield();
+	 	Log("Saving Port B settings: sAcn: "); LogLn((String)deviceSettings.portBprot);
 		Log("Saving ArtNet Settings for Port B. Uni: "); Log((String)deviceSettings.portBuni[0]); Log(" Subnet: "); Log((String)deviceSettings.portBsub); LogLn(".");
-		delay(100); // wait until logged
-		yield();
+		delay(1000); // wait until logged
+		
 
 		// Lengthen or shorten our pixel strip & handle required Artnet ports
 		if (newMode == TYPE_WS2812 && !doReboot) {

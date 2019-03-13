@@ -33,5 +33,3 @@
 /**** LED Settings  ****/
 #define STATUS_LED_BRIGHTNESS 100     // Brightness of Status LED when HIGH (0-1023)
 #define DMX_ACT_LED_BRIGHTNESS 100    // Brightness of DMX LED when HIGH    (0-1023)
-
-
