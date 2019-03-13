@@ -172,16 +172,19 @@ void artStart()
 	// copy the protocol type from the storage into an enum
 	p_protocol protocolTypeA = (p_protocol)deviceSettings.portAprot;
 
-	// WS2812 uses TYPE_DMX_OUT - the rest use the value assigned
-	if (deviceSettings.portAmode == TYPE_WS2812)
-		portA[1] = artRDM.addPort(portA[0], 0, deviceSettings.portAuni[0], TYPE_DMX_OUT, deviceSettings.portAmerge);
-	else
-		portA[1] = artRDM.addPort(portA[0], 0, deviceSettings.portAuni[0], deviceSettings.portAmode, deviceSettings.portAmerge);
+  if(protocolTypeA == PROT_ARTNET)  // only if artnet
+  {
+  	// WS2812 uses TYPE_DMX_OUT - the rest use the value assigned
+  	if (deviceSettings.portAmode == TYPE_WS2812)
+  		portA[1] = artRDM.addPort(portA[0], 0, deviceSettings.portAuni[0], TYPE_DMX_OUT, deviceSettings.portAmerge);
+  	else
+  		portA[1] = artRDM.addPort(portA[0], 0, deviceSettings.portAuni[0], deviceSettings.portAmode, deviceSettings.portAmerge);
+  }
 
 	// if it is an sACN type
-	if (protocolTypeA != PROT_ARTNET)
+	else
 		startE131(e131A, protocolTypeA, deviceSettings.portAuni[0]);
-
+ 
 	// Add extra Artnet ports for WS2812
 	//if (deviceSettings.portAmode == TYPE_WS2812 && deviceSettings.portApixMode == FX_MODE_PIXEL_MAP)
 	//{
@@ -216,14 +219,17 @@ void artStart()
 	// copy the protocol type from the storage into an enum
 	p_protocol protocolTypeB = (p_protocol)deviceSettings.portBprot;
 
-	// WS2812 uses TYPE_DMX_OUT - the rest use the value assigned
-	if (deviceSettings.portBmode == TYPE_WS2812)
-		portB[1] = artRDM.addPort(portB[0], 0, deviceSettings.portBuni[0], TYPE_DMX_OUT, deviceSettings.portBmerge);
-	else
-		portB[1] = artRDM.addPort(portB[0], 0, deviceSettings.portBuni[0], deviceSettings.portBmode, deviceSettings.portBmerge);
-
+  if(protocolTypeB == PROT_ARTNET)  // only if artnet
+  {
+  	// WS2812 uses TYPE_DMX_OUT - the rest use the value assigned
+  	if (deviceSettings.portBmode == TYPE_WS2812)
+  		portB[1] = artRDM.addPort(portB[0], 0, deviceSettings.portBuni[0], TYPE_DMX_OUT, deviceSettings.portBmerge);
+  	else
+  		portB[1] = artRDM.addPort(portB[0], 0, deviceSettings.portBuni[0], deviceSettings.portBmode, deviceSettings.portBmerge);
+  }
+  
 	// if it is an sACN type
-	if (protocolTypeB != PROT_ARTNET) 
+	else
 		startE131(e131B, protocolTypeB, deviceSettings.portBuni[0]);
 	
 

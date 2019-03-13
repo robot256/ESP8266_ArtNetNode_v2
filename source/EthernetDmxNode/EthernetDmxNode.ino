@@ -254,6 +254,7 @@ void loop(void)
 	// Get the node details and handle Artnet
 	doNodeReport();
 	artRDM.handler();
+  e131handler();
 
 	yield();
 
@@ -348,7 +349,10 @@ void e131handler()
 {
 #ifndef DEBUG_ENABLE  // if debug is enabled the port A is not used
 	uint16_t numChannelsA = e131A.parsePacket();  // if there is data
+  Log("A"); LogLn((String)numChannelsA);
+  delay(10);
 	if (numChannelsA) {
+    LogLn("Got E131 data on A");
 		setDmxLed(DMX_ACT_LED_A, true);   // flash Led => to High
 		dmxA.setChans(e131A.data);   // set dmx channels
 		setDmxLed(DMX_ACT_LED_A, false);   // flash Led => to Low
@@ -357,7 +361,10 @@ void e131handler()
 
 
 	uint16_t numChannelsB = e131B.parsePacket();  // if there is data
+  Log("B"); LogLn((String)numChannelsB);
+  delay(10);
 	if (numChannelsB) {
+    LogLn("Got E131 data on B");
 		setDmxLed(DMX_ACT_LED_B, true);   // flash Led => to High
 		dmxB.setChans(e131B.data);    // set dmx channels
 		setDmxLed(DMX_ACT_LED_B, false);   // flash Led => to Low
