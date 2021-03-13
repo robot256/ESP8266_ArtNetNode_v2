@@ -1,9 +1,0 @@
-[submodule "libs/DmxRdmLib"]
-	path = libs/DmxRdmLib
-	url = https://github.com/JonasArnold/DmxRdmLib_esp8266.git
-[submodule "libs/ArtNetE131Lib"]
-	path = libs/ArtNetE131Lib
-	url = https://github.com/JonasArnold/ArtNetE131Lib_esp8266.git
-[submodule "libs/E131"]
-	path = libs/E131
-	url = https://github.com/forkineye/E131.git
