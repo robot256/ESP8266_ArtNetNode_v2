@@ -492,7 +492,7 @@ void startHotspot()
 {
 	yield();
 
-	Log("Starting Hotspot with SSID "); Log(deviceSettings.hotspotSSID); Log(" IP: "); Log((String)deviceSettings.hotspotIp); LogLn(".");
+	Log("Starting Hotspot with SSID "); Log(deviceSettings.hotspotSSID); Log(" IP: "); Log(deviceSettings.hotspotIp.toString()); LogLn(".");
 	WiFi.mode(WIFI_AP);
 	WiFi.softAP(deviceSettings.hotspotSSID, deviceSettings.hotspotPass);
 	WiFi.softAPConfig(deviceSettings.hotspotIp, deviceSettings.hotspotIp, deviceSettings.hotspotSubnet);
