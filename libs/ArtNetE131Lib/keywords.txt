@@ -1,0 +1,63 @@
+#######################################
+# Syntax Coloring Map espDMX
+#######################################
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+espArtNetRDM		KEYWORD1
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+init		KEYWORD2
+setFirmwareVersion		KEYWORD2
+setDefaultIP		KEYWORD2
+addGroup		KEYWORD2
+addPort	KEYWORD2
+closePort	KEYWORD2
+begin	KEYWORD2
+end	KEYWORD2
+pause	KEYWORD2
+getDMX	KEYWORD2
+numChans	KEYWORD2
+
+setProtocolType		KEYWORD2
+getProtocolType	KEYWORD2
+setE131Uni	KEYWORD2
+
+handler	KEYWORD2
+
+setArtDMXCallback	KEYWORD2
+setArtRDMCallback	KEYWORD2
+setArtSyncCallback	KEYWORD2
+setArtIPCallback		KEYWORD2
+setArtAddressCallback	KEYWORD2
+setTODRequestCallback	KEYWORD2
+setTODFlushCallback	KEYWORD2
+
+setNet	KEYWORD2
+setSubNet		KEYWORD2
+setUni	KEYWORD2
+setPortType	KEYWORD2
+getNet	KEYWORD2
+getSubNet		KEYWORD2
+getUni	KEYWORD2
+
+setIP	KEYWORD2
+setDHCP	KEYWORD2
+getIP	KEYWORD2
+getSubnetMask	KEYWORD2
+getDHCP	KEYWORD2
+
+setMerge	KEYWORD2
+getMerge	KEYWORD2
+setShortName	KEYWORD2
+getShortName	KEYWORD2
+setLongName	KEYWORD2
+getLongName	KEYWORD2
+
+rdmResponse	KEYWORD2
+artTODData	KEYWORD2
+setNodeReport	KEYWORD2
+artPollReply	KEYWORD2
+
+sendDMX	KEYWORD2
