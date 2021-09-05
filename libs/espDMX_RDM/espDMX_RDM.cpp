@@ -48,7 +48,7 @@ static uint8_t rxUser;
 static unsigned long rdmTimer = 0;
 
 
-void ICACHE_RAM_ATTR dmx_interrupt_handler(void) {
+void IRAM_ATTR dmx_interrupt_handler(void) {
   // stop other interrupts for TX
   noInterrupts();
   
@@ -496,7 +496,7 @@ void espDMX::ledIntensity(uint8_t newIntensity) {
   _dmx->ledIntensity = newIntensity;
 }
 
-void ICACHE_RAM_ATTR espDMX::_transmit(void) {
+void IRAM_ATTR espDMX::_transmit(void) {
   
   // If we have data to transmit
   if (_dmx->txChan < _dmx->txSize) {
@@ -1078,7 +1078,7 @@ void espDMX::setInputCallback(inputCallBackFunc callback) {
   _dmx->inputCallBack = callback;
 }
 
-void ICACHE_RAM_ATTR espDMX::dmxReceived(uint8_t c) {
+void IRAM_ATTR espDMX::dmxReceived(uint8_t c) {
   switch ( _dmx->state ) {
   
     case DMX_RX_BREAK:
@@ -1100,7 +1100,7 @@ void ICACHE_RAM_ATTR espDMX::dmxReceived(uint8_t c) {
   }
 }
 
-void ICACHE_RAM_ATTR espDMX::inputBreak(void) {
+void IRAM_ATTR espDMX::inputBreak(void) {
   if (_dmx == 0)
     return;
   
