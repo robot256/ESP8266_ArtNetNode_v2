@@ -494,7 +494,7 @@ bool ajaxSave(uint8_t page, JsonObject& json) {
 
     case 7:     // Firmware
       // Doesn't come here
-      
+      return false;
       break;
 
     default:

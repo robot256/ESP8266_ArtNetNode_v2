@@ -945,14 +945,14 @@ uint32_t* espDMX::todDev() {
 
 uint16_t espDMX::todMan(uint16_t n) {
   if (_dmx == 0 || !_dmx->rdm_enable)
-    return NULL;
+    return 0;
 
   return _dmx->todManID[n];
 }
 
 uint32_t espDMX::todDev(uint16_t n) {
   if (_dmx == 0 || !_dmx->rdm_enable)
-    return NULL;
+    return 0;
 
   return _dmx->todDevID[n];
 }

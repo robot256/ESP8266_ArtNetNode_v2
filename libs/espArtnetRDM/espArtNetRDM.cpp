@@ -197,7 +197,7 @@ uint8_t esp8266ArtNetRDM::addPort(byte g, byte p, byte universe, uint8_t t, bool
 
 bool esp8266ArtNetRDM::closePort(uint8_t g, uint8_t p) {
   if (_art == 0 || g >= _art->numGroups)
-    return 0;
+    return false;
   
   group_def* group = _art->group[g];
   
@@ -217,6 +217,7 @@ bool esp8266ArtNetRDM::closePort(uint8_t g, uint8_t p) {
   group->ports[p] = 0;
   group->numPorts--;
   group->ports[p] == 0;
+  return true;
 }
 
 void esp8266ArtNetRDM::setArtDMXCallback(artDMXCallBack callback) {
@@ -1352,7 +1353,7 @@ void esp8266ArtNetRDM::sendDMX(uint8_t g, uint8_t p, IPAddress bcAddress, uint8_
   _artDMX[5] = 'e';
   _artDMX[6] = 't';
   _artDMX[7] = 0;
-  _artDMX[8] = ARTNET_ARTDMX;      	// op code lo-hi
+  _artDMX[8] = ARTNET_ARTDMX & 0x00ff;      	// op code lo-hi
   _artDMX[9] = ARTNET_ARTDMX >> 8;	
   _artDMX[10] = 0;  		   	// protocol version (14)
   _artDMX[11] = 14;
